@@ -1,8 +1,6 @@
 # 📋 Task Manager Pro — AWS Distributed Architecture
 
 > Proyecto Final: Arquitectura de Servicios Distribuidos y Resilientes en AWS  
-> Materia: Arquitectura de Software | Instituto Tecnológico  
-> Alumno: Carlos Santiago Sánchez Robles
 
 ---
 
@@ -132,9 +130,6 @@ pm2 startup && pm2 save
 
 ---
 
-## 📸 Screenshots
-
-> _Agregar capturas de pantalla del sistema funcionando_
 
 ---
 
