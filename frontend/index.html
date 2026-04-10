@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Task Manager Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f1a;
+  --surface:#16162a;
+  --surface2:#1e1e35;
+  --border:#2a2a4a;
+  --primary:#6366f1;
+  --primary-glow:rgba(99,102,241,.35);
+  --accent:#8b5cf6;
+  --green:#10b981;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --blue:#3b82f6;
+  --text:#f1f5f9;
+  --muted:#64748b;
+  --radius:14px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── FONDO ANIMADO ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%,rgba(99,102,241,.18) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 110%,rgba(139,92,246,.15) 0%,transparent 60%);
+  pointer-events:none;
+}
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.particle{
+  position:absolute;width:2px;height:2px;border-radius:50%;
+  background:rgba(99,102,241,.6);
+  animation:float linear infinite;
+}
+@keyframes float{
+  0%{transform:translateY(100vh) translateX(0) scale(0);opacity:0}
+  10%{opacity:1}
+  90%{opacity:.5}
+  100%{transform:translateY(-20px) translateX(var(--dx,20px)) scale(1);opacity:0}
+}
+
+/* ── HEADER ── */
+header{
+  position:relative;z-index:10;
+  padding:20px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:rgba(15,15,26,.8);
+  backdrop-filter:blur(20px);
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;
+  box-shadow:0 0 20px var(--primary-glow);
+  animation:pulse-logo 3s ease-in-out infinite;
+}
+@keyframes pulse-logo{
+  0%,100%{box-shadow:0 0 20px var(--primary-glow)}
+  50%{box-shadow:0 0 35px var(--primary-glow),0 0 60px rgba(99,102,241,.2)}
+}
+.logo h1{font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#a5b4fc,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-stats{display:flex;gap:20px}
+.hstat{text-align:center}
+.hstat-val{font-size:1.3rem;font-weight:700;color:var(--primary)}
+.hstat-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* ── TABS ── */
+.tabs-wrap{position:relative;z-index:10;padding:24px 32px 0}
+.tabs{display:flex;gap:4px;background:var(--surface);border-radius:12px;padding:4px;width:fit-content}
+.tab{
+  padding:10px 24px;border:none;border-radius:9px;cursor:pointer;
+  font-size:.9rem;font-weight:500;font-family:'Inter',sans-serif;
+  color:var(--muted);background:transparent;transition:all .3s;
+}
+.tab.active{
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:white;
+  box-shadow:0 4px 15px var(--primary-glow);
+}
+.tab:not(.active):hover{color:var(--text);background:var(--surface2)}
+
+/* ── CONTAINER ── */
+.container{position:relative;z-index:10;max-width:1100px;margin:28px auto;padding:0 32px}
+
+/* ── CARDS ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+  margin-bottom:20px;
+  transition:border-color .3s,transform .3s,box-shadow .3s;
+  animation:slideUp .4s ease-out both;
+}
+.card:hover{border-color:rgba(99,102,241,.4);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.card-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.card-icon.purple{background:rgba(99,102,241,.2)}
+.card-icon.green{background:rgba(16,185,129,.2)}
+.card-title{font-size:.95rem;font-weight:600;color:var(--text)}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:1/-1}
+.field label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.field input,.field textarea,.field select{
+  width:100%;padding:11px 14px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-size:.92rem;font-family:'Inter',sans-serif;
+  outline:none;transition:all .3s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px var(--primary-glow);
+  background:rgba(99,102,241,.05);
+}
+.field textarea{resize:vertical;min-height:70px}
+.field select option{background:var(--surface2)}
+
+/* ── BOTONES ── */
+.btn{
+  padding:11px 22px;border:none;border-radius:10px;cursor:pointer;
+  font-size:.9rem;font-weight:600;font-family:'Inter',sans-serif;
+  transition:all .25s;display:inline-flex;align-items:center;gap:7px;
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;inset:0;
+  background:white;opacity:0;transition:opacity .2s;border-radius:inherit;
+}
+.btn:active::after{opacity:.1}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:white;box-shadow:0 4px 15px var(--primary-glow);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px var(--primary-glow)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.btn-danger:hover{background:rgba(239,68,68,.25);transform:translateY(-1px)}
+.btn-warning{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.btn-warning:hover{background:rgba(245,158,11,.25);transform:translateY(-1px)}
+.btn-sm{padding:6px 12px;font-size:.8rem;border-radius:7px}
+
+/* ── TABLA ── */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{
+  text-align:left;padding:12px 16px;
+  background:var(--surface2);
+  color:var(--muted);font-size:.75rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--border);
+}
+td{padding:14px 16px;border-bottom:1px solid rgba(42,42,74,.5);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr{transition:background .2s}
+tr:hover td{background:rgba(99,102,241,.05)}
+.row-enter{animation:rowIn .35s ease-out}
+@keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:.76rem;font-weight:600}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7}
+.badge.pendiente{background:rgba(245,158,11,.15);color:var(--amber)}
+.badge.en-progreso{background:rgba(59,130,246,.15);color:var(--blue)}
+.badge.completada{background:rgba(16,185,129,.15);color:var(--green)}
+
+/* ── TOAST ── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:10px}
+.toast-item{
+  padding:14px 20px;border-radius:12px;
+  color:white;font-weight:500;font-size:.9rem;
+  display:flex;align-items:center;gap:10px;
+  backdrop-filter:blur(20px);min-width:260px;
+  animation:toastIn .4s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+.toast-item.hide{animation:toastOut .3s ease-in forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(100%) scale(.8)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(110%) scale(.9)}}
+.toast-item.ok{background:rgba(16,185,129,.9);border:1px solid rgba(16,185,129,.5)}
+.toast-item.err{background:rgba(239,68,68,.9);border:1px solid rgba(239,68,68,.5)}
+.toast-item.info{background:rgba(99,102,241,.9);border:1px solid rgba(99,102,241,.5)}
+
+/* ── MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+  z-index:200;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:32px;width:100%;max-width:500px;
+  box-shadow:0 25px 80px rgba(0,0,0,.5);
+  animation:modalIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal h3{font-size:1.1rem;font-weight:700;margin-bottom:20px;background:linear-gradient(135deg,#a5b4fc,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+/* ── PÁGINAS ── */
+.page{display:none;animation:pageIn .4s ease-out}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── ESTADOS VACÍOS Y ERROR ── */
+.empty{text-align:center;padding:50px;color:var(--muted)}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.5}
+.error-screen{
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  min-height:50vh;gap:14px;text-align:center;
+  animation:slideUp .4s ease-out;
+}
+.error-screen.show{display:flex}
+.error-code{font-size:7rem;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--border),var(--surface2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.error-emoji{font-size:3rem;animation:wobble 1s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.error-msg{color:var(--muted);font-size:1rem;max-width:360px;line-height:1.6}
+.error-btn{margin-top:6px;padding:12px 28px;background:linear-gradient(135deg,var(--primary),var(--accent));color:white;border:none;border-radius:10px;cursor:pointer;font-size:.95rem;font-weight:600;font-family:'Inter',sans-serif;box-shadow:0 4px 15px var(--primary-glow);transition:all .3s}
+.error-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px var(--primary-glow)}
+
+/* ── LOADING SKELETON ── */
+.skeleton{
+  background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:6px;height:16px;margin-bottom:8px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── AUDIT TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{
+  display:flex;gap:16px;padding:14px 0;
+  border-bottom:1px solid rgba(42,42,74,.4);
+  animation:slideUp .3s ease-out both;
+}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+}
+.tl-dot.alta{background:rgba(16,185,129,.2);color:var(--green)}
+.tl-dot.baja{background:rgba(239,68,68,.2);color:var(--red)}
+.tl-dot.actualizacion{background:rgba(59,130,246,.2);color:var(--blue)}
+.tl-body{flex:1}
+.tl-evento{font-size:.88rem;font-weight:600;color:var(--text)}
+.tl-meta{font-size:.78rem;color:var(--muted);margin-top:3px}
+.tl-time{font-size:.75rem;color:var(--muted);white-space:nowrap;align-self:center}
+</style>
+</head>
+<body>
+
+<!-- Partículas de fondo -->
+<div class="particles" id="particles"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    <div>
+      <h1>Task Manager Pro</h1>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val" id="hs-total">0</div><div class="hstat-lbl">Total</div></div>
+    <div class="hstat"><div class="hstat-val" style="color:var(--amber)" id="hs-pend">0</div><div class="hstat-lbl">Pendientes</div></div>
+    <div class="hstat"><div class="hstat-val" style="color:var(--green)" id="hs-done">0</div><div class="hstat-lbl">Completadas</div></div>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="showPage('tareas',this)">📋 Tareas</button>
+    <button class="tab" onclick="showPage('auditoria',this)">🕐 Auditoría</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── PÁGINA TAREAS ── -->
+  <div id="page-tareas" class="page active">
+
+    <div class="card" style="animation-delay:.05s">
+      <div class="card-header">
+        <div class="card-icon purple">➕</div>
+        <span class="card-title">Nueva tarea</span>
+      </div>
+      <div class="form-grid">
+        <div class="field full"><label>Título *</label><input id="f-titulo" placeholder="Ej. Revisar documentación del proyecto"/></div>
+        <div class="field full"><label>Descripción</label><textarea id="f-desc" placeholder="Detalles opcionales..."></textarea></div>
+        <div class="field"><label>Asignado a *</label><input id="f-nombre" placeholder="Nombre del responsable"/></div>
+        <div class="field"><label>Email *</label><input id="f-email" type="email" placeholder="correo@ejemplo.com"/></div>
+        <div class="field full" style="text-align:right;margin-top:4px">
+          <button class="btn btn-primary" onclick="crearTarea()">✦ Crear tarea</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="animation-delay:.1s">
+      <div class="card-header">
+        <div class="card-icon green">📌</div>
+        <span class="card-title">Lista de tareas</span>
+      </div>
+      <div id="lista-tareas">
+        <div class="skeleton" style="height:20px;width:100%"></div>
+        <div class="skeleton" style="height:20px;width:80%;margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div id="error-404" class="error-screen">
+      <div class="error-code">404</div>
+      <div class="error-emoji">🔭</div>
+      <div class="error-msg">No encontramos lo que buscabas. Quizás fue eliminado o nunca existió por aquí.</div>
+      <button class="error-btn" onclick="hideErrors();cargarTareas()">Volver al inicio</button>
+    </div>
+    <div id="error-500" class="error-screen">
+      <div class="error-code">500</div>
+      <div class="error-emoji">🛸</div>
+      <div class="error-msg">Algo explotó en el servidor. No es tu culpa, el universo simplemente quiso así.</div>
+      <button class="error-btn" onclick="hideErrors();cargarTareas()">Reintentar</button>
+    </div>
+  </div>
+
+  <!-- ── PÁGINA AUDITORÍA ── -->
+  <div id="page-auditoria" class="page">
+    <div class="card" style="animation-delay:.05s">
+      <div class="card-header">
+        <div class="card-icon purple">🕐</div>
+        <span class="card-title">Historial de movimientos</span>
+      </div>
+      <div id="lista-auditoria">
+        <div class="skeleton"></div>
+        <div class="skeleton" style="width:70%"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Editar -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <h3>✦ Editar tarea</h3>
+    <input type="hidden" id="e-id"/>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="field"><label>Título</label><input id="e-titulo"/></div>
+      <div class="field"><label>Descripción</label><textarea id="e-desc"></textarea></div>
+      <div class="field"><label>Asignado a</label><input id="e-nombre"/></div>
+      <div class="field"><label>Estado</label>
+        <select id="e-estado">
+          <option value="pendiente">⏳ Pendiente</option>
+          <option value="en-progreso">🔄 En progreso</option>
+          <option value="completada">✅ Completada</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="cerrarModal()" style="background:var(--surface2);color:var(--muted)">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEdicion()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+const API = 'http://localhost:3000';
+
+// ── PARTÍCULAS ──
+const pc = document.getElementById('particles');
+for(let i=0;i<30;i++){
+  const p=document.createElement('div');
+  p.className='particle';
+  p.style.cssText=`left:${Math.random()*100}%;animation-duration:${8+Math.random()*15}s;animation-delay:${Math.random()*10}s;--dx:${(Math.random()-.5)*100}px;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;opacity:${.3+Math.random()*.5}`;
+  pc.appendChild(p);
+}
+
+// ── TABS ──
+function showPage(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  el.classList.add('active');
+  hideErrors();
+  if(p==='tareas')cargarTareas();
+  if(p==='auditoria')cargarAuditoria();
+}
+
+// ── TOAST ──
+function toast(msg,tipo='ok'){
+  const icons={ok:'✓',err:'✕',info:'ℹ'};
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast-item ${tipo}`;
+  t.innerHTML=`<span style="font-size:1rem">${icons[tipo]}</span>${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.classList.add('hide');setTimeout(()=>t.remove(),300)},3500);
+}
+
+// ── ERRORES ──
+function hideErrors(){
+  document.getElementById('error-404').classList.remove('show');
+  document.getElementById('error-500').classList.remove('show');
+  document.querySelector('#page-tareas .card:last-of-type')?.style&&(document.querySelector('#page-tareas .card:last-of-type').style.display='');
+}
+function manejarError(s){
+  hideErrors();
+  document.querySelectorAll('#page-tareas .card').forEach(x=>x.style.display='none');
+  document.getElementById(s===404?'error-404':'error-500').classList.add('show');
+}
+
+// ── STATS HEADER ──
+function updateStats(data){
+  document.getElementById('hs-total').textContent=data.length;
+  document.getElementById('hs-pend').textContent=data.filter(t=>t.estado==='pendiente').length;
+  document.getElementById('hs-done').textContent=data.filter(t=>t.estado==='completada').length;
+}
+
+// ── CARGAR TAREAS ──
+async function cargarTareas(){
+  try{
+    const r=await fetch(API+'/tareas');
+    if(!r.ok)return manejarError(r.status);
+    const{data}=await r.json();
+    updateStats(data);
+    const c=document.getElementById('lista-tareas');
+    if(!data.length){
+      c.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><div>Sin tareas aún. ¡Crea la primera!</div></div>`;
+      return;
+    }
+    c.innerHTML=`<div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Tarea</th><th>Responsable</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr></thead>
+      <tbody>${data.map((t,i)=>`<tr class="row-enter" style="animation-delay:${i*.04}s">
+        <td><span style="color:var(--muted);font-size:.8rem">#${t.id}</span></td>
+        <td>
+          <div style="font-weight:600;font-size:.9rem">${t.titulo}</div>
+          ${t.descripcion?`<div style="color:var(--muted);font-size:.78rem;margin-top:2px">${t.descripcion}</div>`:''}
+        </td>
+        <td>
+          <div style="font-size:.88rem">${t.asignado_a}</div>
+          <div style="color:var(--muted);font-size:.75rem">${t.email_asignado}</div>
+        </td>
+        <td><span class="badge ${t.estado}">${t.estado}</span></td>
+        <td style="color:var(--muted);font-size:.78rem">${new Date(t.creado_en).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})}</td>
+        <td><div style="display:flex;gap:6px">
+          <button class="btn btn-warning btn-sm" onclick="abrirEditar(${t.id},'${t.titulo.replace(/'/g,"\\'")}','${(t.descripcion||'').replace(/'/g,"\\'")}','${t.asignado_a.replace(/'/g,"\\'")}','${t.estado}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminar(${t.id})">🗑️</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch{manejarError(500)}
+}
+
+// ── CREAR ──
+async function crearTarea(){
+  const titulo=document.getElementById('f-titulo').value.trim();
+  const descripcion=document.getElementById('f-desc').value.trim();
+  const asignado_a=document.getElementById('f-nombre').value.trim();
+  const email_asignado=document.getElementById('f-email').value.trim();
+  if(!titulo||!asignado_a||!email_asignado)return toast('Completa los campos requeridos','err');
+  try{
+    const r=await fetch(API+'/tareas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo,descripcion,asignado_a,email_asignado})});
+    const d=await r.json();
+    if(!r.ok)return toast(d.mensaje||'Error al crear','err');
+    toast('Tarea creada ✓ Correo enviado');
+    ['f-titulo','f-desc','f-nombre','f-email'].forEach(id=>document.getElementById(id).value='');
+    cargarTareas();
+  }catch{manejarError(500)}
+}
+
+// ── EDITAR ──
+function abrirEditar(id,titulo,desc,nombre,estado){
+  document.getElementById('e-id').value=id;
+  document.getElementById('e-titulo').value=titulo;
+  document.getElementById('e-desc').value=desc;
+  document.getElementById('e-nombre').value=nombre;
+  document.getElementById('e-estado').value=estado;
+  document.getElementById('modal-editar').classList.add('open');
+}
+function cerrarModal(){document.getElementById('modal-editar').classList.remove('open')}
+async function guardarEdicion(){
+  const id=document.getElementById('e-id').value;
+  const body={titulo:document.getElementById('e-titulo').value.trim(),descripcion:document.getElementById('e-desc').value.trim(),asignado_a:document.getElementById('e-nombre').value.trim(),estado:document.getElementById('e-estado').value};
+  try{
+    const r=await fetch(API+'/tareas/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){r.status===404?manejarError(404):toast(d.mensaje,'err');return}
+    cerrarModal();toast('Tarea actualizada correctamente');cargarTareas();
+  }catch{manejarError(500)}
+}
+
+// ── ELIMINAR ──
+async function eliminar(id){
+  if(!confirm('¿Eliminar esta tarea?'))return;
+  try{
+    const r=await fetch(API+'/tareas/'+id,{method:'DELETE'});
+    const d=await r.json();
+    if(!r.ok){r.status===404?manejarError(404):toast(d.mensaje,'err');return}
+    toast('Tarea eliminada');cargarTareas();
+  }catch{manejarError(500)}
+}
+
+// ── AUDITORÍA ──
+async function cargarAuditoria(){
+  try{
+    const r=await fetch(API+'/auditoria');
+    if(!r.ok)return;
+    const{data}=await r.json();
+    const c=document.getElementById('lista-auditoria');
+    if(!data.length){c.innerHTML=`<div class="empty"><div class="empty-icon">📜</div><div>Sin movimientos aún.</div></div>`;return}
+    const icons={ALTA:'➕',BAJA:'🗑️','ACTUALIZACIÓN':'✏️'};
+    const cls={ALTA:'alta',BAJA:'baja','ACTUALIZACIÓN':'actualizacion'};
+    c.innerHTML=`<div class="timeline">${data.map((m,i)=>`
+      <div class="tl-item" style="animation-delay:${i*.03}s">
+        <div class="tl-dot ${cls[m.evento]||'alta'}">${icons[m.evento]||'•'}</div>
+        <div class="tl-body">
+          <div class="tl-evento">${m.detalle}</div>
+          <div class="tl-meta">por <strong>${m.autor}</strong></div>
+        </div>
+        <div class="tl-time">${new Date(m.timestamp).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})}</div>
+      </div>`).join('')}</div>`;
+  }catch{console.error('Error auditoría')}
+}
+
+// ── INIT ──
+cargarTareas();
+</script>
+</body>
+</html>
