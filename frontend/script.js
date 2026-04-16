@@ -140,7 +140,7 @@ async function crearTarea() {
       return toast(`Error ${r.status}: ${d.mensaje || 'Error al crear'}`, 'err');
     }
 
-    toast('Tarea creada ✓');
+    toast('Tarea creada ✓ Correo Enviado ✓');
     ['f-titulo', 'f-desc', 'f-nombre', 'f-email'].forEach(id => document.getElementById(id).value = '');
     cargarTareas();
   } catch {
