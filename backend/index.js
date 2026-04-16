@@ -1,7 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const db = require('./database');
+console.log("¿Dónde estoy buscando el .env?: ", process.cwd());
+console.log("Valor de EMAIL_USER: ", process.env.EMAIL_USER);
 const { enviarAsignacion } = require('./mailer');
 
 const app = express();
@@ -10,19 +14,29 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+});
+
 /* ───────── TAREAS ───────── */
 
-// Obtener todas
 app.get('/tareas', (req, res) => {
   try {
-    const tareas = db.prepare('SELECT * FROM tareas ORDER BY creado_en DESC').all();
+    const q = req.query.q;
+    let tareas;
+    if (q) {
+      tareas = db.prepare('SELECT * FROM tareas WHERE titulo LIKE ? OR asignado_a LIKE ? ORDER BY creado_en DESC').all(`%${q}%`, `%${q}%`);
+    } else {
+      tareas = db.prepare('SELECT * FROM tareas ORDER BY creado_en DESC').all();
+    }
     res.json({ ok: true, data: tareas });
   } catch {
     res.status(500).json({ ok: false, mensaje: 'Error interno del servidor' });
   }
 });
 
-// Obtener una
 app.get('/tareas/:id', (req, res) => {
   try {
     const tarea = db.prepare('SELECT * FROM tareas WHERE id = ?').get(req.params.id);
@@ -33,7 +47,6 @@ app.get('/tareas/:id', (req, res) => {
   }
 });
 
-// Crear
 app.post('/tareas', async (req, res) => {
   try {
     const { titulo, descripcion, asignado_a, email_asignado } = req.body;
@@ -56,7 +69,6 @@ app.post('/tareas', async (req, res) => {
   }
 });
 
-// Actualizar
 app.put('/tareas/:id', (req, res) => {
   try {
     const tarea = db.prepare('SELECT * FROM tareas WHERE id = ?').get(req.params.id);
@@ -65,10 +77,10 @@ app.put('/tareas/:id', (req, res) => {
     const { titulo, descripcion, estado, asignado_a } = req.body;
     db.prepare('UPDATE tareas SET titulo=?, descripcion=?, estado=?, asignado_a=? WHERE id=?')
       .run(
-        titulo       ?? tarea.titulo,
-        descripcion  ?? tarea.descripcion,
-        estado       ?? tarea.estado,
-        asignado_a   ?? tarea.asignado_a,
+        titulo ?? tarea.titulo,
+        descripcion ?? tarea.descripcion,
+        estado ?? tarea.estado,
+        asignado_a ?? tarea.asignado_a,
         req.params.id
       );
 
@@ -81,7 +93,6 @@ app.put('/tareas/:id', (req, res) => {
   }
 });
 
-// Eliminar
 app.delete('/tareas/:id', (req, res) => {
   try {
     const tarea = db.prepare('SELECT * FROM tareas WHERE id = ?').get(req.params.id);
@@ -109,4 +120,5 @@ app.get('/auditoria', (req, res) => {
 });
 
 /* ───────── INICIO ───────── */
-app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+
+app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
