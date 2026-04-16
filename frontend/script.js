@@ -1,5 +1,5 @@
-// const API = 'http://ec2-3-144-165-135.us-east-2.compute.amazonaws.com:3000'; // AWS Producción
-const API = 'http://localhost:3000'; // Entorno Local
+const API = 'http://ec2-3-144-165-135.us-east-2.compute.amazonaws.com:3000';
+// const API = 'http://localhost:3000';
 
 // ── PARTÍCULAS ──
 const pc = document.getElementById('particles');
